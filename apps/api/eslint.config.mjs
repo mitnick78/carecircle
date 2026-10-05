@@ -1,6 +1,6 @@
 import { nestConfig } from '@carecircle/eslint-config/nest';
 
-export default [
+const config = [
   ...nestConfig,
   {
     languageOptions: {
@@ -8,3 +8,5 @@ export default [
     },
   },
 ];
+
+export default config;
