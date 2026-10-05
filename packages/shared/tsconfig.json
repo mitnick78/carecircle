@@ -1,0 +1,4 @@
+{
+  "extends": "@carecircle/typescript-config/library.json",
+  "include": ["src", "tsdown.config.ts"]
+}
