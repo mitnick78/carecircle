@@ -17,7 +17,8 @@ The detailed architecture, data model and access rules live in [`ARCHITECTURE.md
 - **Web**: Next.js (App Router) + TypeScript + Tailwind — **Clean Architecture**
 - **Mobile**: React Native + Expo (Expo Router) — **Clean Architecture**
 - **Shared**: TypeScript types and Zod validation schemas
-- **Tests**: Jest (API, mobile), Vitest + Testing Library (web), Supertest (API e2e)
+- **Tests**: Vitest (API, packages), Vitest + Testing Library (web), Jest (`jest-expo`) + React Native Testing Library (mobile), Supertest (API e2e)
+- **Tooling**: Node 24 LTS (`.nvmrc`), TypeScript 6.0, ESLint 9 (flat config), Prettier, tsdown (builds the shared packages)
 
 ## Structure
 
@@ -30,6 +31,8 @@ packages/
   shared/         API contract: types, Zod schemas, constants (used by api, web, mobile)
   client-core/    Client domain + application layers, shared by web and mobile
   ui-tokens/      Design tokens (colours, typography, spacing) for Tailwind and React Native
+  typescript-config/  Shared tsconfig presets (base, nestjs, nextjs, react-native, library)
+  eslint-config/      Shared ESLint flat configs (base, nest, next, react-native, library)
 docs/
   ux/             UX specs produced by the ux-ui agent
 .claude/
@@ -39,18 +42,25 @@ docs/
 ## Commands
 
 ```bash
+nvm use                      # Node 24 (from .nvmrc)
 pnpm install                 # install dependencies
+cp .env.example .env         # then replace every "change-me"
+pnpm db:up                   # start the local dev + test PostgreSQL databases (Docker)
+pnpm db:down                 # stop them
 pnpm dev                     # run api + web locally
 pnpm --filter api dev        # run the API only
 pnpm --filter mobile start   # run the mobile app (Expo)
+pnpm build                   # build every app and package
 pnpm test                    # all tests
-pnpm --filter api test:e2e   # API e2e tests (access rights)
+pnpm test:e2e                # e2e tests (API access rights)
 pnpm lint                    # lint the whole monorepo
 pnpm typecheck               # TypeScript checks
-pnpm --filter api prisma migrate dev   # create/apply a migration locally
+pnpm format                  # format with Prettier (format:check to verify)
 ```
 
-> To be adjusted as soon as the real scripts exist.
+> Prisma is not installed yet: `pnpm --filter api prisma migrate dev` will be added with the first data module.
+
+Mobile dependencies are added with `pnpm --filter mobile exec expo install <package>` so versions match the Expo SDK.
 
 ## Expected workflow
 
