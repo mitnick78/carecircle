@@ -7,7 +7,7 @@ export const nestConfig = [
   ...baseConfig,
   {
     languageOptions: {
-      globals: { ...globals.node, ...globals.jest },
+      globals: globals.node,
     },
     rules: {
       // NestJS modules are decorated empty classes by design.
