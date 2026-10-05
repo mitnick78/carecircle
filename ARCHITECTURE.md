@@ -347,10 +347,23 @@ DELETE /plannings/:planningId/events/:eventId/notes/:noteId  (author or admin)
 ## 10. Deployment
 
 - **API** and **web**: two Vercel projects on the same repo (Root Directory `apps/api` and `apps/web`), with `turbo-ignore` to skip unaffected builds.
-- **Database**: Neon, using the pooled connection URL in production.
+- **Database**: local PostgreSQL (Docker) for development and tests; Neon for preview and production, using the pooled connection URL (see below).
 - **Mobile**: EAS Build + EAS Submit (TestFlight, Android internal testing).
 - **CI**: GitHub Actions (`.github/workflows` at the repo root) — lint, typecheck and tests on every pull request; production deployment only after manual approval.
 - Secrets only in GitHub, Vercel and EAS.
+
+### Database environments
+
+| Environment        | Database                                        | Notes                                                              |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------ |
+| Development        | Local PostgreSQL (Docker, `docker-compose.yml`) | Free, offline, can be reset at will                                |
+| Tests (local + CI) | Separate local PostgreSQL database              | Recreated for each e2e run; CI uses a PostgreSQL service container |
+| Preview            | Neon (preview branch)                           | Used by Vercel preview deployments                                 |
+| Production         | Neon (main branch)                              | Real data — its URL never appears on a developer machine           |
+
+- `.env.example` points to the local Docker database only.
+- Development and test databases use different names and credentials from preview and production.
+- No Neon configuration is needed until the first deployment.
 
 ## 11. Decisions
 
