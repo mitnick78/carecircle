@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Least privilege: the workflow only needs to read the repository.
+permissions:
+  contents: read
+
+# One run per branch: a new push cancels the previous run of the same branch.
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, typecheck, test and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      # Throwaway test database. Credentials are dummy values, not secrets:
+      # the service is only reachable from this job's runner.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: carecircle_ci
+          POSTGRES_PASSWORD: carecircle_ci
+          POSTGRES_DB: carecircle_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U carecircle_ci -d carecircle_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL_TEST: postgresql://carecircle_ci:carecircle_ci@localhost:5433/carecircle_test
+      NEXT_TELEMETRY_DISABLED: '1'
+      TURBO_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # No version input: pnpm is read from "packageManager" in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+      - name: Build
+        run: pnpm build
