@@ -21,4 +21,4 @@ CLAUDE.local.md
 # Misc
 .DS_Store
 *.log
-coverage/
+coverage/AGENTS.md
