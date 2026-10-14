@@ -1,0 +1,11 @@
+{
+  "extends": "@carecircle/typescript-config/nestjs.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    // NestJS DTOs and injected properties are assigned by the framework, not the constructor.
+    "strictPropertyInitialization": false,
+    "types": ["vitest/globals", "node"]
+  },
+  "exclude": ["node_modules", "dist"]
+}

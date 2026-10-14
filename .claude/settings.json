@@ -9,10 +9,9 @@
       "Bash(git push origin main:*)",
       "Bash(prisma migrate reset:*)",
       "Bash(pnpm prisma migrate reset:*)",
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./apps/*/.env)",
-      "Read(./apps/*/.env.*)"
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(!**/.env.example)"
     ]
   }
 }

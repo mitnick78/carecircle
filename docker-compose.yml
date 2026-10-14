@@ -1,0 +1,42 @@
+# Local databases only. Credentials come from .env (copy .env.example).
+# Both ports are bound to 127.0.0.1: nothing is reachable from the network.
+name: carecircle
+
+services:
+  postgres-dev:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DEV_DB_USER:?DEV_DB_USER is not set}
+      POSTGRES_PASSWORD: ${DEV_DB_PASSWORD:?DEV_DB_PASSWORD is not set}
+      POSTGRES_DB: ${DEV_DB_NAME:?DEV_DB_NAME is not set}
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Throwaway database for e2e tests: stored in memory, empty after every restart.
+  postgres-test:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${TEST_DB_USER:?TEST_DB_USER is not set}
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:?TEST_DB_PASSWORD is not set}
+      POSTGRES_DB: ${TEST_DB_NAME:?TEST_DB_NAME is not set}
+    ports:
+      - '127.0.0.1:5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-dev-data:

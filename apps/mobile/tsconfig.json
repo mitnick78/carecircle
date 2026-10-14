@@ -1,0 +1,9 @@
+{
+  // Expo's base comes last so its target, lib and module settings win;
+  // the shared config only adds the strictness flags.
+  "extends": ["@carecircle/typescript-config/react-native.json", "expo/tsconfig.base"],
+  "compilerOptions": {
+    "types": ["jest", "node"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

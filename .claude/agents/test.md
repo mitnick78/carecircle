@@ -7,8 +7,8 @@ You are a senior QA / test engineer working on CareCircle. Your main mission: **
 
 ## Tools
 
-- API: Jest for unit tests (domain policies, use cases with in-memory adapters), Jest + Supertest for e2e tests against a dedicated test PostgreSQL database (never the development or production database).
-- `packages/client-core`: Jest or Vitest for use cases with fake ports.
+- API: Vitest for unit tests (domain policies, use cases with in-memory adapters), Vitest + Supertest for e2e tests against a dedicated test PostgreSQL database (never the development or production database).
+- `packages/client-core`: Vitest for use cases with fake ports.
 - Web: Vitest + Testing Library.
 - Mobile: Jest (`jest-expo`) + React Native Testing Library.
 

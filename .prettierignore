@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+.next
+.expo
+.turbo
+pnpm-lock.yaml
+next-env.d.ts
+expo-env.d.ts
