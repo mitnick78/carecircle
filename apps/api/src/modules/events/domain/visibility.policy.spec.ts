@@ -228,3 +228,68 @@ describe('canViewNote', () => {
     });
   });
 });
+
+describe('identifiants vides ou manquants', () => {
+  // The types forbid these values; data mapped from the database at runtime might not.
+  const MISSING = undefined as unknown as string;
+  const invalidIds = [
+    ['manquant', MISSING],
+    ['vide', ''],
+    ['blanc', '   '],
+  ] as const;
+
+  describe.each(invalidIds)('identifiant %s', (_label, invalidId) => {
+    it("un administrateur est refusé quand le planningId du viewer et celui de l'événement sont tous deux invalides", () => {
+      const viewer = admin({ planningId: invalidId });
+
+      expect(canViewEvent(viewer, event({ planningId: invalidId }))).toBe(false);
+      expect(canViewNote(viewer, event({ planningId: invalidId }), note())).toBe(false);
+    });
+
+    it('un administrateur sans memberId valide est refusé', () => {
+      const viewer = admin({ memberId: invalidId });
+
+      expect(canViewEvent(viewer, event())).toBe(false);
+      expect(canViewNote(viewer, event(), note())).toBe(false);
+    });
+
+    it('un membre sans memberId valide ne voit pas un partage direct dont le memberId est aussi invalide', () => {
+      const viewer = member({ memberId: invalidId });
+      const shared = [toMember(invalidId)];
+
+      expect(canViewEvent(viewer, event({ visibility: shared }))).toBe(false);
+      expect(canViewNote(viewer, event({ visibility: shared }), note({ visibility: shared }))).toBe(
+        false,
+      );
+    });
+
+    it("un membre ne voit pas un partage avec un groupe d'identifiant invalide, même si ses groupIds contiennent la même valeur", () => {
+      const viewer = member({ groupIds: [invalidId] });
+
+      expect(canViewEvent(viewer, event({ visibility: [toGroup(invalidId)] }))).toBe(false);
+    });
+
+    it("un membre ne voit pas un partage direct d'identifiant invalide, et garde l'accès par son groupe", () => {
+      const viewer = member({ groupIds: [GRANDPARENTS] });
+
+      expect(canViewEvent(viewer, event({ visibility: [toMember(invalidId)] }))).toBe(false);
+      expect(
+        canViewEvent(viewer, event({ visibility: [toMember(invalidId), toGroup(GRANDPARENTS)] })),
+      ).toBe(true);
+    });
+
+    it("un administrateur est refusé quand l'événement n'a pas d'identifiant valide", () => {
+      expect(canViewEvent(admin(), event({ id: invalidId }))).toBe(false);
+    });
+
+    it("un administrateur ne voit pas la note quand son eventId et l'identifiant de l'événement sont tous deux invalides", () => {
+      expect(canViewNote(admin(), event({ id: invalidId }), note({ eventId: invalidId }))).toBe(
+        false,
+      );
+    });
+
+    it("un administrateur ne voit pas une note sans eventId valide, même sur un événement valide qu'il voit", () => {
+      expect(canViewNote(admin(), event(), note({ eventId: invalidId }))).toBe(false);
+    });
+  });
+});
