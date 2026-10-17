@@ -7,6 +7,9 @@ const frameworkImports = {
   message: 'Domain and application layers must stay framework-free (see ARCHITECTURE.md §3).',
 };
 
+// Every file TypeScript or Node can load: a .mts or .js file in domain/ is still domain code.
+const sourceFiles = '*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}';
+
 const outerLayerImports = {
   group: ['**/infrastructure/**', '**/interface/**', '**/*.module', '**/*.module.js'],
   message: 'Inner layers never import outer layers (see ARCHITECTURE.md §3).',
@@ -26,7 +29,7 @@ export const nestConfig = [
   },
   // Hexagonal dependency rule: domain <- application <- infrastructure / interface.
   {
-    files: ['src/modules/*/application/**/*.ts'],
+    files: [`src/**/application/**/${sourceFiles}`],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
@@ -35,7 +38,7 @@ export const nestConfig = [
     },
   },
   {
-    files: ['src/modules/*/domain/**/*.ts'],
+    files: [`src/**/domain/**/${sourceFiles}`],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
