@@ -91,7 +91,7 @@ apps/api/src/
 ```
 
 - Ports are injected by NestJS through injection tokens; the module binds each port to its adapter.
-- Use cases receive an explicit `Viewer` (`userId`, `memberId`, `role`, `groupIds`) built by the guards — never the raw HTTP request.
+- Use cases receive an explicit `Viewer` (`planningId`, `memberId`, `role`, `groupIds`) built by the guards — never the raw HTTP request. A `Viewer` is scoped to one planning: the policy denies any resource whose `planningId` differs, even to an admin, and denies access when an id is missing or blank. The guard only puts in `groupIds` the groups of that planning.
 - Lint rule (e.g. `eslint-plugin-boundaries`): files in `domain/` and `application/` cannot import `@nestjs/*`, `@prisma/*` or anything in `infrastructure/` or `interface/`.
 
 ### Why hexagonal here

@@ -46,7 +46,7 @@ Cases to cover specifically:
 ## Good practices
 
 - Each test creates its own data (factories) and depends on no other test.
-- Test names read like a specification: "an invited member cannot see the parents-only appointment".
+- Test names (describe/it) are written in English, phrased as specifications: "an invited member cannot see the parents-only appointment". Only user-facing text is in French.
 - Test behaviour, not implementation.
 - No dependency on real time: inject a fake `Clock` port for invitation and code expiry.
 - Only fictional data in fixtures, never real data.

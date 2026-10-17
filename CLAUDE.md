@@ -90,6 +90,7 @@ Shared design tokens live in `packages/ui-tokens`: web (Tailwind) and mobile use
 - Strict TypeScript everywhere, no `any`.
 - Types and schemas exchanged between the API and clients live in `packages/shared`. Never duplicate them.
 - Code (variables, functions, files, comments) in English; user-facing text in French.
+- Test names (describe/it) are written in English, phrased as specifications. Only user-facing text is in French.
 - Respect the dependency rule of each architecture (see `ARCHITECTURE.md`): **inner layers never import outer layers.**
 - Commits follow Conventional Commits: `feat(api): ...`, `fix(mobile): ...`, `test(api): ...`.
 - One branch per feature, merged into `main` through a pull request only.
