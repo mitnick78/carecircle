@@ -149,6 +149,18 @@ describe('canViewNote', () => {
     it('un administrateur voit une note sans visibilité sur un événement sans visibilité', () => {
       expect(canViewNote(admin(), event({ visibility: [] }), note({ visibility: [] }))).toBe(true);
     });
+
+    it('un administrateur voit une note réservée à un groupe dont il ne fait pas partie', () => {
+      const viewer = admin({ groupIds: [PARENTS] });
+
+      expect(canViewNote(viewer, event(), note({ visibility: [toGroup(NANNY)] }))).toBe(true);
+    });
+
+    it('un administrateur voit une note réservée à un autre membre', () => {
+      const viewer = admin({ memberId: ALICE });
+
+      expect(canViewNote(viewer, event(), note({ visibility: [toMember(BOB)] }))).toBe(true);
+    });
   });
 
   describe('membre', () => {
@@ -226,6 +238,94 @@ describe('canViewNote', () => {
         false,
       );
     });
+
+    it("un membre d'un autre planning ne voit pas la note, même si l'événement et la note sont partagés avec ses identifiants", () => {
+      const viewer = member({
+        planningId: OTHER_PLANNING,
+        memberId: ALICE,
+        groupIds: [GRANDPARENTS],
+      });
+      const shared = [toGroup(GRANDPARENTS), toMember(ALICE)];
+
+      expect(
+        canViewNote(
+          viewer,
+          event({ planningId: PLANNING, visibility: shared }),
+          note({ visibility: shared }),
+        ),
+      ).toBe(false);
+    });
+
+    it("un membre ne voit pas une note rattachée à un autre événement, même si l'événement et la note lui sont partagés", () => {
+      const viewer = member({ memberId: ALICE, groupIds: [GRANDPARENTS] });
+      const shared = [toGroup(GRANDPARENTS), toMember(ALICE)];
+
+      expect(
+        canViewNote(
+          viewer,
+          event({ id: EVENT, visibility: shared }),
+          note({ eventId: OTHER_EVENT, visibility: shared }),
+        ),
+      ).toBe(false);
+    });
+  });
+});
+
+describe('entrées dégradées', () => {
+  // Shapes the types forbid but a faulty database mapping could still produce.
+  const NO_VISIBILITY = null as unknown as readonly VisibilityRecipient[];
+
+  it("un membre est refusé sans erreur quand la visibilité de l'événement n'est pas une liste", () => {
+    const viewer = member({ groupIds: [GRANDPARENTS] });
+
+    expect(canViewEvent(viewer, event({ visibility: NO_VISIBILITY }))).toBe(false);
+  });
+
+  it("un membre est refusé sans erreur quand la visibilité de la note n'est pas une liste", () => {
+    const viewer = member({ groupIds: [GRANDPARENTS] });
+    const visibleToGrandparents = event({ visibility: [toGroup(GRANDPARENTS)] });
+
+    expect(canViewNote(viewer, visibleToGrandparents, note({ visibility: NO_VISIBILITY }))).toBe(
+      false,
+    );
+  });
+
+  it('des groupIds passés sous forme de texte ne donnent accès à aucun groupe, même par correspondance partielle', () => {
+    const viewer = member({ groupIds: 'group-abc' as unknown as readonly string[] });
+
+    expect(canViewEvent(viewer, event({ visibility: [toGroup('abc')] }))).toBe(false);
+    expect(canViewEvent(viewer, event({ visibility: [toGroup('group-abc')] }))).toBe(false);
+  });
+
+  it.each(['GROUP', 'everyone', undefined])(
+    'un destinataire de type inconnu (%s) ne donne pas accès',
+    (kind) => {
+      const viewer = member({ memberId: ALICE, groupIds: [GRANDPARENTS] });
+      const unknownRecipient = {
+        kind,
+        groupId: GRANDPARENTS,
+        memberId: ALICE,
+      } as unknown as VisibilityRecipient;
+
+      expect(canViewEvent(viewer, event({ visibility: [unknownRecipient] }))).toBe(false);
+    },
+  );
+
+  it("un destinataire nul est ignoré, sans erreur, et n'empêche pas l'accès par un autre destinataire", () => {
+    const viewer = member({ groupIds: [GRANDPARENTS] });
+    const nullRecipient = null as unknown as VisibilityRecipient;
+
+    expect(canViewEvent(viewer, event({ visibility: [nullRecipient] }))).toBe(false);
+    expect(
+      canViewEvent(viewer, event({ visibility: [nullRecipient, toGroup(GRANDPARENTS)] })),
+    ).toBe(true);
+  });
+
+  it("un rôle inconnu n'accorde pas les droits d'administrateur", () => {
+    const viewer = member({ role: 'admin' as unknown as Viewer['role'], groupIds: [] });
+
+    expect(canViewEvent(viewer, event({ visibility: [] }))).toBe(false);
+    expect(canViewNote(viewer, event({ visibility: [toMember(ALICE)] }), note())).toBe(false);
   });
 });
 
